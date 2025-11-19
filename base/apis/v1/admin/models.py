@@ -195,11 +195,15 @@ class PlayerPoolNotes(db.Model):
 class Athletes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
+    image_name = db.Column(db.String(150), default="default.png")
+    image_path = db.Column(db.String(150), default="/static/user_images/")
     jeresy_no = db.Column(db.String(10), nullable=False)
     level = db.Column(db.Integer())
     position = db.Column(db.String(10))
     position_code = db.Column(db.String(10))
     status = db.Column(db.String(10),default='Not Assign')
+    primary = db.Column(db.String(10))
+    alt = db.Column(db.String(10))
     created_time = db.Column(db.DateTime)
     accepted_time = db.Column(db.DateTime)
     is_deleted = db.Column(db.Boolean(), default=False)
@@ -207,8 +211,10 @@ class Athletes(db.Model):
     subadmin_id = db.Column(db.Integer, db.ForeignKey('admin.id', ondelete='CASCADE', onupdate='CASCADE'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE', onupdate='CASCADE'))
     pool_id = db.Column(db.Integer, db.ForeignKey('player_pool.id', ondelete='CASCADE', onupdate='CASCADE'))
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE', onupdate='CASCADE'))
 
     def as_dict(self):
+        image = COMMON_URL + self.image_path + self.image_name
 
         return {
             "id": self.id,
@@ -216,7 +222,10 @@ class Athletes(db.Model):
             "jeresy_no": self.jeresy_no if self.jeresy_no is not None else '',
             "status": self.status if self.status is not None else '',
             "level": self.level if self.level is not None else '',
-            "position": self.position if self.position is not None else ''
+            "position": self.position if self.position is not None else '',
+            "image": image,
+            "primary": self.primary if self.primary is not None else '',
+            "alt": self.alt if self.alt is not None else ''
         }
 
 class Teams(db.Model):

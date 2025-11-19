@@ -10,7 +10,7 @@ from base.apis.v1.admin.create import AddUserResource,CreatePlayerPoolResource,C
 
 # User View
 
-from base.apis.v1.user.view import GetTeamsResource,GroundPositionPlayerPoolResource,GetPlayerPoolResource,GetPlayerPoolAthletesResource,GivePlayerPoolAthletePositionResource
+from base.apis.v1.user.view import GetTeamsAthletesResource,GetTeamsResource,GroundPositionPlayerPoolResource,GetPlayerPoolResource,GetPlayerPoolAthletesResource,GivePlayerPoolAthletePositionResource
 
 # User Create
 
@@ -49,6 +49,7 @@ api.add_resource(GetPlayerPoolAthletesResource, user_base+"player_pool_athletes"
 api.add_resource(GivePlayerPoolAthletePositionResource, user_base+"assign_athlete_data")
 api.add_resource(GroundPositionPlayerPoolResource, user_base+"ground_position")
 api.add_resource(GetTeamsResource, user_base+"get_teams_data")
+api.add_resource(GetTeamsAthletesResource, user_base+"get_team_athletes")
 
 # User Create
 

@@ -122,3 +122,30 @@ def token_required(f):
 
     return decorator
 
+class AthleteIdpNotes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    note_type = db.Column(db.String(10), nullable=False)
+    time_string = db.Column(db.String(80), nullable=True)
+    audio_name = db.Column(db.String(40), nullable=True)
+    audio_path = db.Column(db.String(80), nullable=True)
+    text = db.Column(db.Text(), nullable=True)
+    created_time = db.Column(db.DateTime)
+    is_deleted = db.Column(db.Boolean(), default=False)
+
+    pool_id = db.Column(db.Integer, db.ForeignKey('player_pool.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE', onupdate='CASCADE'),
+                        nullable=False)
+
+    def as_dict(self):
+        audio = COMMON_URL + self.audio_path + self.audio_name if self.audio_name is not None else ''
+
+        return {
+
+            'id': self.id,
+            'note_type': self.note_type,
+            'time_string': self.time_string,
+            'audio': audio,
+            'text': self.text if self.text is not None else ''
+
+        }

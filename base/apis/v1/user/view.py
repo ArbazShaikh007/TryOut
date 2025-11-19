@@ -185,3 +185,32 @@ class GetTeamsResource(Resource):
         except Exception as e:
             print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
             return {'status': 0, 'message': str(e)}, 500
+
+class GetTeamsAthletesResource(Resource):
+    @token_required
+    def post(self,active_user):
+        try:
+            data = request.get_json() or {}
+
+            page = int(data.get('page', 1))
+            per_page = 10
+
+            team_id = data.get("team_id")
+
+            if not team_id:
+                return create_response(0,"Please select team first")
+
+            get_teams_data = Teams.query.filter_by(is_deleted = False,user_id = active_user.id,id = team_id).first()
+            if not get_teams_data:
+                return create_response(0,"Invalid team data")
+
+            get_athletes = Athletes.query.filter(Athletes.is_deleted == False,Athletes.team_id == team_id,Athletes.user_id == active_user.id).order_by(
+                Athletes.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+            athletes_list = [ i.as_dict() for i in get_athletes.items ]
+
+            return jsonify({ 'status': 1, 'message': 'Success','data': athletes_list })
+
+        except Exception as e:
+            print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
+            return {'status': 0, 'message': str(e)}, 500

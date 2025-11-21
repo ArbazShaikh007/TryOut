@@ -11,7 +11,34 @@ from pathlib import Path
 from base.common.utils import create_response,upload_audio_local,delete_audio_local
     # push_notification,upload_photos_local,upload_photos,user_send_reset_email
 from base.apis.v1.user.models import User,token_required
-from base.apis.v1.admin.models import PlayerPool,Athletes,PlayerPoolNotes
+from base.apis.v1.admin.models import PlayerPool,Athletes,PlayerPoolNotes,Teams
+
+class TeamFormationResource(Resource):
+    @token_required
+    def post(self,active_user):
+        try:
+            data = request.get_json() or {}
+
+            team_id = data.get("team_id")
+            formation = data.get("formation")
+
+            if not team_id:
+                return jsonify({"status": 0,"messege": "Please select team first"})
+            if not formation:
+                return jsonify({"status": 0,"messege": "Please provide formation"})
+
+            get_team_data = Teams.query.filter_by(id = team_id,is_deleted = False,user_id = active_user.id).first()
+            if not get_team_data:
+                return jsonify({"status": 0,"messege": "Invalid team data"})
+
+            get_team_data.formation =formation
+            db.session.commit()
+
+            return jsonify({'status': 1,'messege': 'Formation updated successfully'})
+
+        except Exception as e:
+            print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
+            return {'status': 0, 'message': str(e)}, 500
 
 class CreatePlayerPoolNotesResource(Resource):
     @token_required

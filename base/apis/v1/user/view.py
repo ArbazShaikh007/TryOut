@@ -209,7 +209,7 @@ class GetTeamsAthletesResource(Resource):
 
             athletes_list = [ i.as_dict() for i in get_athletes.items ]
 
-            return jsonify({ 'status': 1, 'message': 'Success','data': athletes_list })
+            return jsonify({ 'status': 1, 'message': 'Success','data': athletes_list,"formation": get_teams_data.formation })
 
         except Exception as e:
             print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))

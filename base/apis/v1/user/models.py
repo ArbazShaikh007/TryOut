@@ -58,7 +58,7 @@ class User(db.Model):
 
         return {
 
-            'id': self.id,
+            'id': str(self.id),
             'name': self.name if self.name is not None else '',
             'email': self.email if self.email is not None else '',
             'token': token

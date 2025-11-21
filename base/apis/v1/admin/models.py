@@ -231,6 +231,7 @@ class Athletes(db.Model):
 class Teams(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
+    formation = db.Column(db.String(150), default="4-2-3-1")
     created_time = db.Column(db.DateTime)
     is_deleted = db.Column(db.Boolean(), default=False)
 
@@ -244,5 +245,6 @@ class Teams(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "created_time": output_date
+            "created_time": output_date,
+            "formation": self.formation
         }

@@ -80,18 +80,71 @@ class GivePlayerPoolAthletePositionResource(Resource):
             if not get_athlete_data:
                 return jsonify({'status': 0, 'message': 'Invalid athlete data'})
 
+            old_status = get_athlete_data.status
+            old_order = get_athlete_data.order
+
             if position:
+                positions_list = [
+                    "GK", "RD", "LD", "CD", "CDM",
+                    "RSF", "CM", "S", "CAM", "LSF"
+                ]
+
+                if not position in positions_list:
+                    create_response(0,"Invalid postion")
+
                 get_athlete_data.position = position
 
             if level:
                 get_athlete_data.level = level
 
             if status:
+                # ───────── STATUS = ACCEPTED ─────────
                 if status == "Accepted":
-                    get_athlete_data.accepted_time = datetime.utcnow()
+                    # only treat as "new accepted" if previously not accepted
+                    if old_status != "Accepted":
+                        get_athlete_data.accepted_time = datetime.utcnow()
 
+                        max_order = (
+                            db.session.query(db.func.max(Athletes.order))
+                                .filter(
+                                Athletes.pool_id == pool_id,
+                                Athletes.status == "Accepted",
+                                Athletes.is_deleted == False
+                            )
+                                .scalar()
+                        )
+
+                        if not max_order:
+                            max_order = 0
+
+                        get_athlete_data.order = max_order + 1
+
+                # ───────── STATUS = DECLINED ─────────
+                if status == "Declined":
+                    # only re-arrange if this athlete was previously accepted and had an order
+                    if old_status == "Accepted" and old_order is not None:
+                        # clear its own order + accepted_time
+                        get_athlete_data.order = None
+                        get_athlete_data.accepted_time = None
+
+                        # get remaining accepted athletes in this pool
+                        remaining_accepted = (
+                            Athletes.query.filter(
+                                Athletes.pool_id == pool_id,
+                                Athletes.is_deleted == False,
+                                Athletes.status == "Accepted",
+                                Athletes.order != None
+                            )
+                                .order_by(Athletes.order.asc())
+                                .all()
+                        )
+
+                        # reassign order: 1,2,3,...
+                        for idx, a in enumerate(remaining_accepted, start=1):
+                            a.order = idx
+
+                # finally set new status
                 get_athlete_data.status = status
-
             else:
                 get_athlete_data.status = "Assigned"
 
@@ -210,6 +263,150 @@ class GetTeamsAthletesResource(Resource):
             athletes_list = [ i.as_dict() for i in get_athletes.items ]
 
             return jsonify({ 'status': 1, 'message': 'Success','data': athletes_list,"formation": get_teams_data.formation })
+
+        except Exception as e:
+            print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
+            return {'status': 0, 'message': str(e)}, 500
+
+class GetTeamsGroundResource(Resource):
+    @token_required
+    def post(self,active_user):
+        try:
+            data = request.get_json() or {}
+
+            team_id = data.get("team_id")
+
+            if not team_id:
+                return create_response(0,"Please select team first")
+
+            get_teams_data = Teams.query.filter_by(is_deleted = False,user_id = active_user.id,id = team_id).first()
+            if not get_teams_data:
+                return create_response(0,"Invalid team data")
+
+            get_athletes = Athletes.query.filter(Athletes.is_deleted == False,Athletes.team_id == team_id,Athletes.user_id == active_user.id).all()
+
+            positions_order = [
+                "GK", "RD", "LD", "CD", "CDM",
+                "RSF", "CM", "S", "CAM", "LSF"
+            ]
+
+            position_wise_list = []
+
+            for pos in positions_order:
+                # filter athletes of this position
+                pos_athletes = [a for a in get_athletes if a.position == pos]
+
+                # sort by 'order' ascending (None goes to bottom)
+                pos_athletes.sort(
+                    key=lambda a: (a.order if a.order is not None else 999999)
+                )
+
+                # build simple JSON-friendly data
+                position_wise_list.append({
+                    "position": pos,
+                    "athletes": [
+                        {
+                            "id": a.id,
+                            "name": a.name,
+                            "jeresy_no": a.jeresy_no,
+                            "level": a.level,
+                            "order": a.order,
+                            "position": a.position,
+                        }
+                        for a in pos_athletes
+                    ]
+                })
+
+            return jsonify({
+                "status": 1,
+                "message": "Success",
+                "formation": get_teams_data.formation,
+                "data": position_wise_list
+            })
+
+        except Exception as e:
+            print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
+            return {'status': 0, 'message': str(e)}, 500
+
+class ReorderTeamsAthletesResource(Resource):
+    @token_required
+    def post(self,active_user):
+        try:
+            data = request.get_json() or {}
+
+            team_id = data.get("team_id")
+            position = data.get("position")
+            order_no = data.get("order_no")
+            athlete_id = data.get("athlete_id")
+
+            if not team_id:
+                return create_response(0,"Please select team first")
+            if not position:
+                return create_response(0,"Please select position first")
+            if not order_no:
+                return create_response(0,"Please select order no first")
+            if not athlete_id:
+                return create_response(0,"Please select athlete first")
+
+            get_team_data = Teams.query.filter_by(is_deleted=False).first()
+            if not get_team_data:
+                return create_response(0,"Invalid team data")
+
+            get_athlete_data = Athletes.query.filter_by(id =athlete_id,is_deleted=False, team_id=team_id).first()
+            if not get_athlete_data:
+                return create_response(0,"Invalid athlete data")
+
+            get_teams_data = Teams.query.filter_by(is_deleted = False,user_id = active_user.id,id = team_id).first()
+            if not get_teams_data:
+                return create_response(0,"Invalid team data")
+
+            if get_athlete_data.order is None:
+                create_response(0,"Athlete dont have any order no")
+
+            positions_list = [
+                "GK", "RD", "LD", "CD", "CDM",
+                "RSF", "CM", "S", "CAM", "LSF"
+            ]
+
+            if not position in positions_list:
+                create_response(0,"Invalid position")
+
+            # make sure order_no is int
+            order_no = int(order_no)
+
+            # 1) Get all athletes for this team + position
+            get_athletes_orders = Athletes.query.filter(
+                Athletes.is_deleted == False,
+                Athletes.team_id == team_id,
+                Athletes.user_id == active_user.id,
+                Athletes.position == position,
+            ).order_by(Athletes.order.asc()).all()
+
+            # 2) Remove the athlete we are moving
+            get_athletes_orders = [
+                a for a in get_athletes_orders if a.id != get_athlete_data.id
+            ]
+
+            # 3) Clamp order_no into valid range
+            total = len(get_athletes_orders) + 1
+            if order_no < 1:
+                order_no = 1
+            if order_no > total:
+                order_no = total
+
+            # 4) Insert the current athlete at the new position
+            get_athletes_orders.insert(order_no - 1, get_athlete_data)
+
+            # 5) Reassign clean orders: 1,2,3,...
+            for idx, a in enumerate(get_athletes_orders, start=1):
+                a.order = idx
+
+            db.session.commit()
+
+            return jsonify({
+                "status": 1,
+                "message": "Re-order successfully"
+            })
 
         except Exception as e:
             print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))

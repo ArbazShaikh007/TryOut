@@ -207,6 +207,7 @@ class Athletes(db.Model):
     created_time = db.Column(db.DateTime)
     accepted_time = db.Column(db.DateTime)
     is_deleted = db.Column(db.Boolean(), default=False)
+    order = db.Column(db.Integer())
 
     subadmin_id = db.Column(db.Integer, db.ForeignKey('admin.id', ondelete='CASCADE', onupdate='CASCADE'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE', onupdate='CASCADE'))

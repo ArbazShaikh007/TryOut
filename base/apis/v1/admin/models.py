@@ -181,6 +181,8 @@ class PlayerPoolNotes(db.Model):
 
     def as_dict(self):
         audio = COMMON_URL + self.audio_path + self.audio_name if self.audio_name is not None else ''
+        input_date = datetime.strptime(str(self.created_time), "%Y-%m-%d %H:%M:%S")
+        output_date = input_date.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
         return {
 
@@ -188,7 +190,8 @@ class PlayerPoolNotes(db.Model):
             'note_type': self.note_type,
             'time_string': self.time_string,
             'audio': audio,
-            'text': self.text if self.text is not None else ''
+            'text': self.text if self.text is not None else '',
+            'created_time': output_date
 
         }
 

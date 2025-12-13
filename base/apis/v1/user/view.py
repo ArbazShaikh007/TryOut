@@ -92,6 +92,23 @@ class GivePlayerPoolAthletePositionResource(Resource):
                 if not position in positions_list:
                     create_response(0,"Invalid postion")
 
+                if get_athlete_data.position != position:
+                    remaining_accepted = (
+                        Athletes.query.filter(
+                            Athletes.pool_id == pool_id,
+                            Athletes.is_deleted == False,
+                            Athletes.status == "Accepted",
+                            Athletes.order != None,
+                            Athletes.position == get_athlete_data.position
+                        )
+                            .order_by(Athletes.order.asc())
+                            .all()
+                    )
+
+                    # reassign order: 1,2,3,...
+                    for idx, a in enumerate(remaining_accepted, start=1):
+                        a.order = idx
+
                 get_athlete_data.position = position
 
             if level:
@@ -109,7 +126,8 @@ class GivePlayerPoolAthletePositionResource(Resource):
                                 .filter(
                                 Athletes.pool_id == pool_id,
                                 Athletes.status == "Accepted",
-                                Athletes.is_deleted == False
+                                Athletes.is_deleted == False,
+                                Athletes.position == get_athlete_data.position
                             )
                                 .scalar()
                         )
@@ -133,7 +151,8 @@ class GivePlayerPoolAthletePositionResource(Resource):
                                 Athletes.pool_id == pool_id,
                                 Athletes.is_deleted == False,
                                 Athletes.status == "Accepted",
-                                Athletes.order != None
+                                Athletes.order != None,
+                                Athletes.position == get_athlete_data.position
                             )
                                 .order_by(Athletes.order.asc())
                                 .all()
@@ -146,7 +165,8 @@ class GivePlayerPoolAthletePositionResource(Resource):
                 # finally set new status
                 get_athlete_data.status = status
             else:
-                get_athlete_data.status = "Assigned"
+                if get_athlete_data.position == position:
+                    get_athlete_data.status = "Assigned"
 
             db.session.commit()
 

@@ -34,7 +34,7 @@ class TeamFormationResource(Resource):
             get_team_data.formation =formation
             db.session.commit()
 
-            return jsonify({'status': 1,'messege': 'Formation updated successfully'})
+            return jsonify({'status': 1,'messege': 'Formation updated successfully','formation': formation})
 
         except Exception as e:
             print('errorrrrrrrrrrrrrrrrrrrrrrrrrrrrr:', str(e))
@@ -44,21 +44,23 @@ class CreatePlayerPoolNotesResource(Resource):
     @token_required
     def post(self,active_user):
         try:
-            data = request.form
+            # data = request.form
 
-            note_type = data.get("note_type")
+            data = request.get_json()
+
+            # note_type = data.get("note_type")
             time_string = data.get("time_string")
-            audio = request.files.get("audio")
+            # audio = request.files.get("audio")
             text = data.get("text")
             pool_id = data.get("pool_id")
 
-            if not note_type in ["audio","text"]:
-                return create_response(0,"Invalid note type")
+            # if not note_type in ["audio","text"]:
+            #     return create_response(0,"Invalid note type")
 
-            if not text and not audio:
-                return create_response(0,"Please add text or record voice note")
-            if not time_string:
-                return create_response(0,"Please provide date and time")
+            if not text:
+                return create_response(0,"Please provide text for note")
+            # if not time_string:
+            #     return create_response(0,"Please provide date and time")
             if not pool_id:
                 return create_response(0,"Invalid data")
 
@@ -66,16 +68,16 @@ class CreatePlayerPoolNotesResource(Resource):
             if not get_pool_data:
                 return create_response(0,"Invalid data")
 
-            if audio:
-                if text:
-                    return create_response(0,"You cannot be add voice note and text same time")
-                file_path, picture = upload_audio_local(audio)
-            else:
-                file_path = None
-                picture = None
+            # if audio:
+            #     if text:
+            #         return create_response(0,"You cannot be add voice note and text same time")
+            #     file_path, picture = upload_audio_local(audio)
+            # else:
+            #     file_path = None
+            #     picture = None
 
-            add_notes = PlayerPoolNotes(note_type = note_type,time_string =time_string,audio_name=picture,
-                                        audio_path=file_path,text=text,pool_id=pool_id,created_time=datetime.utcnow(),user_id=active_user.id)
+            add_notes = PlayerPoolNotes(time_string =time_string,
+                                        text=text,pool_id=pool_id,created_time=datetime.utcnow(),user_id=active_user.id)
 
             db.session.add(add_notes)
             db.session.commit()

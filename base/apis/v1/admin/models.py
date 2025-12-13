@@ -166,7 +166,7 @@ class UserPlayerPool(db.Model):
 
 class PlayerPoolNotes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    note_type = db.Column(db.String(10), nullable=False)
+    note_type = db.Column(db.String(10), default='text')
     time_string = db.Column(db.String(80), nullable=True)
     audio_name = db.Column(db.String(40), nullable=True)
     audio_path = db.Column(db.String(80), nullable=True)

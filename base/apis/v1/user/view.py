@@ -43,7 +43,7 @@ class GetPlayerPoolAthletesResource(Resource):
             if not get_pool_data:
                 return jsonify({'status': 0, 'message': 'Invalid data'})
 
-            get_player_pool_athletes = Athletes.query.filter_by(is_deleted = False,user_id = active_user.id,pool_id = pool_id).all()
+            get_player_pool_athletes = Athletes.query.filter_by(is_deleted = False,user_id = active_user.id,pool_id = pool_id).order_by(Athletes.level.desc()).all()
 
             player_pools_athletes_list = [ i.as_dict() for i in get_player_pool_athletes ]
 
@@ -85,7 +85,7 @@ class GivePlayerPoolAthletePositionResource(Resource):
 
             if position:
                 positions_list = [
-                    "GK", "RD", "LD", "CD", "CDM",
+                    "GK", "RD", "LD", "RCD", "LCD", "CDM",
                     "RSF", "CM", "S", "CAM", "LSF"
                 ]
 
@@ -180,7 +180,7 @@ class GroundPositionPlayerPoolResource(Resource):
 
             # fixed order of positions
             positions = [
-                "GK", "RD", "LD", "CD", "CDM",
+                "GK", "RD", "LD", "RCD", "LCD", "CDM",
                 "RSF", "CM", "S", "CAM", "LSF"
             ]
 
@@ -286,7 +286,7 @@ class GetTeamsGroundResource(Resource):
             get_athletes = Athletes.query.filter(Athletes.is_deleted == False,Athletes.team_id == team_id,Athletes.user_id == active_user.id).all()
 
             positions_order = [
-                "GK", "RD", "LD", "CD", "CDM",
+                "GK", "RD", "LD", "RCD","LCD", "CDM",
                 "RSF", "CM", "S", "CAM", "LSF"
             ]
 
@@ -364,7 +364,7 @@ class ReorderTeamsAthletesResource(Resource):
                 create_response(0,"Athlete dont have any order no")
 
             positions_list = [
-                "GK", "RD", "LD", "CD", "CDM",
+                "GK", "RD", "LD", "RCD", "LCD", "CDM",
                 "RSF", "CM", "S", "CAM", "LSF"
             ]
 

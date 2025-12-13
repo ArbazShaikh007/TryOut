@@ -14,7 +14,7 @@ from base.apis.v1.user.view import ReorderTeamsAthletesResource,GetTeamsGroundRe
 
 # User Create
 
-from base.apis.v1.user.create import CreatePlayerPoolNotesResource,GetPlayerPoolNotesResource
+from base.apis.v1.user.create import TeamFormationResource,CreatePlayerPoolNotesResource,GetPlayerPoolNotesResource
 
 # User Auth
 
@@ -57,3 +57,4 @@ api.add_resource(ReorderTeamsAthletesResource, user_base+"reorder_team_athlete")
 
 api.add_resource(CreatePlayerPoolNotesResource, user_base+"create_pool_notes")
 api.add_resource(GetPlayerPoolNotesResource, user_base+"get_pool_notes")
+api.add_resource(TeamFormationResource, user_base+"update_team_formation")

@@ -19,6 +19,11 @@ from dotenv import load_dotenv
 from pathlib import Path
 from base.common.helpers import validate_schema
 
+# env_path = Path('/var/www/html/backend/base/.env')
+# load_dotenv(dotenv_path=env_path)
+
+load_dotenv()
+
 class AddUserResource(Resource):
     @admin_login_required
     def post(self, active_user):
